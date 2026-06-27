@@ -37,8 +37,9 @@
   .ytick{position:absolute;top:0;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
   .ygrid{position:absolute;top:22px;bottom:14px;width:1px;background:var(--line);opacity:.45}
   .row{position:relative;height:30px}
-  .bar{position:absolute;height:18px;top:5px;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:11.5px;font-weight:600;color:#0d1117;white-space:nowrap;overflow:visible;cursor:default}
-  .bar small{font-weight:500;opacity:.8;margin-left:6px}
+  .bar{position:absolute;height:16px;top:6px;border-radius:5px;cursor:default;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+  .blabel{position:absolute;font-size:11.5px;font-weight:600;color:var(--txt);white-space:nowrap;line-height:16px;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+  .bwin{color:var(--muted);font-weight:500}
   .today{position:absolute;top:22px;bottom:14px;width:2px;background:#f85149;z-index:5}
   .today-lbl{position:absolute;top:0;font-size:10px;color:#f85149;transform:translateX(-50%);font-weight:700}
 
@@ -80,7 +81,8 @@
   <div class="legend" id="legend"></div>
 
   <h2>The 4-year timeline</h2>
-  <div class="vt" id="vt"></div>
+  <p class="sub" style="margin-top:-6px">Swipe horizontally if needed · each bar spans the tournament</p>
+  <div class="gantt"><div class="gantt-inner" id="gantt"></div></div>
 
   <h2>Each tournament, phase by phase</h2>
   <div class="cards" id="cards"></div>
@@ -148,22 +150,24 @@ const seen = {};
 document.getElementById("legend").innerHTML = T.map(t=>t.cat).filter(c=>!seen[c]&&(seen[c]=1))
   .map(c=>`<span><i class="dot" style="background:${catColor(c)}"></i>${c}</span>`).join("");
 
-// vertical timeline (chronological, mobile-readable)
-const vt = document.getElementById("vt");
-const fmt = d => new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
-vt.innerHTML = T.map(t=>{
-  const col = catColor(t.cat);
-  const span = fmt(t.start)+"  →  "+fmt(t.end);
-  const res = t.status==="ongoing"
-    ? `<span class="vt-live">● ongoing now</span>`
-    : `<span class="vt-win">🏆 ${t.winner}</span> <span style="color:var(--muted)">def. ${t.runner}</span>`;
-  return `<div class="vt-item">
-     <div class="vt-dot" style="background:${col}"></div>
-     <div class="vt-date">${span}</div>
-     <div class="vt-name">${t.name}<span class="vt-tag" style="background:${col}">${t.cat}</span></div>
-     <div class="vt-meta">${t.hosts} · ${res}</div>
-   </div>`;
-}).join("");
+// horizontal timeline (Gantt) — readable light labels placed beside the bars
+const g = document.getElementById("gantt");
+let ghtml = `<div class="axis">`;
+for(let y=2023;y<=2026;y++){ const x=pct(`${y}-01-01`); ghtml+=`<div class="ytick" style="left:${x}%">${y}</div><div class="ygrid" style="left:${x}%"></div>`; }
+ghtml += `</div>`;
+T.forEach(t=>{
+  const x1=pct(t.start), x2=pct(t.end), w=Math.max(x2-x1,1.2);
+  const col=catColor(t.cat);
+  const short = t.name.replace(/^20\d\d\s/,'').replace('FIFA ','');
+  const res = t.status==="ongoing" ? `<span style="color:#f85149">● live</span>` : `🏆 ${t.winner}`;
+  const mid=(x1+x2)/2;
+  const lbl = mid<54 ? `left:calc(${x2}% + 9px)` : `right:calc(${100-x1}% + 9px);text-align:right`;
+  ghtml += `<div class="row"><div class="bar" style="left:${x1}%;width:${w}%;background:${col}" title="${t.name}: ${t.start} → ${t.end}"></div>`+
+           `<div class="blabel" style="top:6px;${lbl}">${short} <span class="bwin">${res}</span></div></div>`;
+});
+const tx = pct("2026-06-27");
+ghtml += `<div class="today" style="left:${tx}%"></div><div class="today-lbl" style="left:${tx}%;top:2px">today</div>`;
+g.innerHTML = ghtml;
 
 // per-tournament phase cards
 const phaseColor = {Group:"#8b949e",R32:"#58a6ff",R16:"#58a6ff",QF:"#3fb950",SF:"#e3b341",Final:"#f85149"};
