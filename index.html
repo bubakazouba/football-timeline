@@ -46,6 +46,18 @@
   .plab{position:absolute;top:24px;font-size:9.5px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
   .pdate{position:absolute;top:-2px;font-size:9px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
   .note{font-size:12px;color:var(--muted);margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+  /* club finals */
+  .clubgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.clubgrid{grid-template-columns:1fr}}
+  .clubcol{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .clubcol h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
+  .clubcol h3 .pill{font-size:10px}
+  .frow{display:grid;grid-template-columns:62px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+  .frow:first-of-type{border-top:none}
+  .fssn{font-size:12px;color:var(--muted);font-weight:600}
+  .fwin{font-size:13.5px}
+  .fwin b{color:var(--wc)}
+  .fmeta{font-size:11px;color:var(--muted);margin-top:2px}
   .foot{color:var(--muted);font-size:11.5px;margin-top:26px}
 </style>
 </head>
@@ -61,6 +73,10 @@
 
   <h2>Each tournament, phase by phase</h2>
   <div class="cards" id="cards"></div>
+
+  <h2>European club finals — Champions League & Europa League</h2>
+  <p class="sub" style="margin-top:-6px">Annual club competitions (season finals), 2022 → 2026</p>
+  <div class="clubgrid" id="clubs"></div>
 
   <p class="foot" id="foot"></p>
 </div>
@@ -166,8 +182,36 @@ document.getElementById("cards").innerHTML = T.map(t=>{
    </div>`;
 }).join("");
 
+// European club finals (UCL + Europa League)
+const CLUB = {
+ "Champions League":[
+   {ssn:"2021-22", date:"2022-05-28", w:"Real Madrid", l:"Liverpool", sc:"1–0", v:"Stade de France, Paris"},
+   {ssn:"2022-23", date:"2023-06-10", w:"Manchester City", l:"Inter Milan", sc:"1–0", v:"Atatürk, Istanbul"},
+   {ssn:"2023-24", date:"2024-06-01", w:"Real Madrid", l:"Borussia Dortmund", sc:"2–0", v:"Wembley, London"},
+   {ssn:"2024-25", date:"2025-05-31", w:"Paris Saint-Germain", l:"Inter Milan", sc:"5–0", v:"Allianz Arena, Munich"},
+   {ssn:"2025-26", date:"2026-05-30", w:"Paris Saint-Germain", l:"Arsenal", sc:"1–1, 4–3 pens", v:"Puskás Aréna, Budapest"},
+ ],
+ "Europa League":[
+   {ssn:"2021-22", date:"2022-05-18", w:"Eintracht Frankfurt", l:"Rangers", sc:"1–1, 5–4 pens", v:"Sánchez-Pizjuán, Seville"},
+   {ssn:"2022-23", date:"2023-05-31", w:"Sevilla", l:"Roma", sc:"1–1, 4–1 pens", v:"Puskás Aréna, Budapest"},
+   {ssn:"2023-24", date:"2024-05-22", w:"Atalanta", l:"Bayer Leverkusen", sc:"3–0", v:"Aviva Stadium, Dublin"},
+   {ssn:"2024-25", date:"2025-05-21", w:"Tottenham Hotspur", l:"Manchester United", sc:"1–0", v:"San Mamés, Bilbao"},
+   {ssn:"2025-26", date:"2026-05-20", w:"Aston Villa", l:"SC Freiburg", sc:"3–0", v:"Beşiktaş Park, Istanbul"},
+ ],
+};
+const clubPill = {"Champions League":"#e3b341","Europa League":"#ff9e64"};
+document.getElementById("clubs").innerHTML = Object.keys(CLUB).map(comp=>{
+  const rows = CLUB[comp].slice().reverse().map(f=>{
+    const dd = new Date(f.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+    return `<div class="frow"><div class="fssn">${f.ssn}</div><div>
+        <div class="fwin">🏆 <b>${f.w}</b> def. ${f.l} <span style="color:var(--muted)">(${f.sc})</span></div>
+        <div class="fmeta">${dd} · ${f.v}</div></div></div>`;
+  }).join("");
+  return `<div class="clubcol"><h3><span class="pill" style="background:${clubPill[comp]}">UEFA</span>${comp}</h3>${rows}</div>`;
+}).join("");
+
 document.getElementById("foot").textContent =
-  "Dates verified against FIFA/UEFA/Wikipedia, June 2026. Continental = Euro / Copa / AFCON / Asian Cup.";
+  "Dates verified against FIFA/UEFA/Wikipedia, June 2026. Continental = Euro / Copa / AFCON / Asian Cup. Club finals = UEFA Champions League & Europa League season finals.";
 </script>
 </body>
 </html>
